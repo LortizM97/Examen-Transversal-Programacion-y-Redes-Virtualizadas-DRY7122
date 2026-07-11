@@ -1,0 +1,49 @@
+import requests
+7d96c1ac-81ee-42ec-b670-c4b31f831edd
+API_KEY = "TU_API_KEY"
+
+ciudades = {
+    "Santiago": (-33.4489, -70.6693),
+    "Mendoza": (-32.8908, -68.8272),
+    "Buenos Aires": (-34.6037, -58.3816)
+}
+
+def calcular_viaje(origen, destino, transporte):
+    if origen not in ciudades or destino not in ciudades:
+        return "Error: Ciudad no encontrada."
+
+    coord_origen = ciudades[origen]
+    coord_destino = ciudades[destino]
+
+    # Llamada a GraphHopper Directions API
+    url = (
+        f"https://graphhopper.com/api/1/route?"
+        f"point={coord_origen[0]},{coord_origen[1]}&"
+        f"point={coord_destino[0]},{coord_destino[1]}&"
+        f"vehicle=car&locale=es&instructions=true&key={API_KEY}"
+    )
+    response = requests.get(url)
+    data = response.json()
+
+    distancia_km = data["paths"][0]["distance"] / 1000
+    duracion_horas = data["paths"][0]["time"] / (1000 * 60 * 60)
+
+    narrativa = "\nNarrativa del viaje:\n"
+    for paso in data["paths"][0]["instructions"]:
+        narrativa += "- " + paso["text"] + "\n"
+
+    resultado = f"""
+El viaje desde {origen} hasta {destino} en {transporte} cubre {distancia_km:.2f} km.
+Duración aproximada: {duracion_horas:.2f} horas.
+{narrativa}
+"""
+    return resultado
+
+def main():
+    origen = input("Ingrese Ciudad de Origen: ")
+    destino = input("Ingrese Ciudad de Destino: ")
+    transporte = input("Ingrese medio de transporte (auto, bus, avion): ")
+    print(calcular_viaje(origen, destino, transporte))
+
+if __name__ == "__main__":
+    main()
